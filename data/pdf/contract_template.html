@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Kontrak Perjanjian</title>
+  <style>
+    body {
+      font-family: Cambria, Calibri, Arial, sans-serif;
+      margin: 40px;
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      font-size: 18pt;
+      font-weight: bold;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    h2 {
+      font-size: 14pt;
+      font-weight: bold;
+      margin-top: 15px;
+      margin-bottom: 10px;
+    }
+    p {
+      margin: 5px 0;
+      text-align: justify;
+    }
+    .signature {
+      margin-top: 50px;
+    }
+    .signature div {
+      width: 45%;
+      display: inline-block;
+      vertical-align: top;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>KONTRAK PERJANJIAN<br>No: {{contract_number}}</h1>
+
+  <p>Pada hari ini, tanggal {{contract_date}}, bertempat di {{contract_location}}, telah dibuat dan disepakati perjanjian antara:</p>
+
+  <h2>Pihak Pertama</h2>
+  <p>Nama & Jabatan: {{pihak1_name}}</p>
+  <p>Perusahaan: {{pihak1_company}}</p>
+  <p>Alamat: {{pihak1_address}}</p>
+
+  <h2>Pihak Kedua</h2>
+  <p>Nama & Jabatan: {{pihak2_name}}</p>
+  <p>Perusahaan: {{pihak2_company}}</p>
+  <p>Alamat: {{pihak2_address}}</p>
+
+  <h2>Pasal 1 - Ruang Lingkup</h2>
+  <p>{{scope_of_work}}</p>
+
+  <h2>Pasal 2 - Nilai Kontrak</h2>
+  <p>Nilai kontrak ini adalah sebesar {{contract_value}} ({{contract_value_words}} Rupiah).</p>
+
+  <h2>Pasal 3 - Jangka Waktu</h2>
+  <p>Perjanjian berlaku sejak tanggal {{start_date}} sampai dengan {{end_date}}.</p>
+
+  <h2>Pasal 4 - Ketentuan Lain</h2>
+  <p>{{terms}}</p>
+
+  <h2>Lampiran</h2>
+  <ul>
+    {% for lampiran in lampiran_list %}
+      <li>{{lampiran}}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="signature">
+    <div>
+      <p>Pihak Pertama</p>
+      <br><br><br>
+      <p>{{pihak1_name}}</p>
+      <p>{{pihak1_position}}</p>
+    </div>
+    <div>
+      <p>Pihak Kedua</p>
+      <br><br><br>
+      <p>{{pihak2_name}}</p>
+      <p>{{pihak2_position}}</p>
+    </div>
+  </div>
+
+</body>
+</html>
