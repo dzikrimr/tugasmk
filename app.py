@@ -1,52 +1,83 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Form, Body
+from fastapi.responses import FileResponse
 import uvicorn
-import traceback
 import os
+import uuid
+import traceback
+from datetime import datetime
 from collections import defaultdict
 from src.ocr import extract_text_from_pdf
 from src.ner import extract_entities
 from src.utils import clean_text
+from src.gemma import fill_template_with_gemma
+from src.pdfgen import html_to_pdf
 
 app = FastAPI()
+
+# Folder untuk sementara
+os.makedirs("temp", exist_ok=True)
+os.makedirs("output", exist_ok=True)
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
     try:
-        os.makedirs("temp", exist_ok=True)
         pdf_path = f"temp/{file.filename}"
-
-        # simpan file PDF sementara
         with open(pdf_path, "wb") as f:
             f.write(await file.read())
 
-        # OCR per halaman
-        text_pages = extract_text_from_pdf(pdf_path, return_pages=True)  # kembalikan list per halaman
+        text_pages = extract_text_from_pdf(pdf_path, return_pages=True)
         all_entities = []
         full_text = ""
 
         for page_text in text_pages:
             cleaned = clean_text(page_text)
             full_text += cleaned + "\n"
-            entities = extract_entities(cleaned)  # chunking otomatis di dalam
+            entities = extract_entities(cleaned)
             all_entities.append(entities)
 
-        # Merge hasil entities per halaman
+        # Merge entities per halaman
         merged_entities = defaultdict(list)
         for ent in all_entities:
             for k, v in ent.items():
                 merged_entities[k].extend(v)
-        # hapus duplikat
         for k in merged_entities:
             merged_entities[k] = list(set(merged_entities[k]))
 
         return {
-            "text_preview": full_text[:300], 
+            "text_preview": full_text[:300],
             "entities": merged_entities
         }
 
     except Exception as e:
         print(traceback.format_exc())
         return {"error": str(e)}
+
+
+@app.post("/generate_contract")
+async def generate_contract(
+    entities_json: dict = Body(...),
+    template_name: str = Form("contract_template.html")
+):
+    try:
+        template_path = f"templates/{template_name}"
+        if not os.path.exists(template_path):
+            return {"error": "Template HTML tidak ditemukan"}
+
+        # Panggil Gemma untuk isi kontrak
+        filled_html = fill_template_with_gemma(template_path, entities_json)
+
+        # Convert HTML ke PDF
+        pdf_bytes = html_to_pdf(filled_html)
+        pdf_file = f"output/contract_{uuid.uuid4().hex}.pdf"
+        with open(pdf_file, "wb") as f:
+            f.write(pdf_bytes)
+
+        return FileResponse(pdf_file, filename="contract.pdf")
+
+    except Exception as e:
+        print(traceback.format_exc())
+        return {"error": str(e)}
+
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000)
