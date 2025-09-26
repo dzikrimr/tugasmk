@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, Body
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 from typing import Dict, Any
 import uvicorn
@@ -84,23 +84,103 @@ async def generate_contract(payload: ContractPayload = Body(..., examples={
         template_path = f"templates/{template_name}"
 
         if not os.path.exists(template_path):
-            return {"error": "Template HTML tidak ditemukan"}
+            return JSONResponse(
+                status_code=404,
+                content={"error": f"Template HTML tidak ditemukan: {template_path}"}
+            )
 
+        print(f"[INFO] Processing entities: {entities_json}")
+        
         # Panggil Gemma untuk isi kontrak
         filled_html = fill_template_with_gemma(template_path, entities_json)
+        
+        # Debug: Cek apakah masih ada placeholder
+        if "{{" in filled_html:
+            print("[WARNING] Masih ada placeholder yang tidak terisi!")
+            print(f"Filled HTML preview: {filled_html[:500]}...")
+        else:
+            print("[INFO] Semua placeholder berhasil diisi")
 
         # Convert HTML ke PDF
-        pdf_bytes = html_to_pdf(filled_html)
-        pdf_file = f"output/contract_{uuid.uuid4().hex}.pdf"
-        with open(pdf_file, "wb") as f:
-            f.write(pdf_bytes)
-
-        return FileResponse(pdf_file, filename="contract.pdf")
+        try:
+            pdf_bytes = html_to_pdf(filled_html)
+            pdf_file = f"output/contract_{uuid.uuid4().hex}.pdf"
+            
+            with open(pdf_file, "wb") as f:
+                f.write(pdf_bytes)
+            
+            print(f"[INFO] PDF berhasil dibuat: {pdf_file}")
+            return FileResponse(
+                pdf_file, 
+                filename="contract.pdf",
+                media_type="application/pdf"
+            )
+            
+        except Exception as pdf_error:
+            print(f"[ERROR] Gagal membuat PDF: {pdf_error}")
+            # Return HTML untuk debugging
+            return JSONResponse(
+                status_code=500,
+                content={
+                    "error": f"Gagal membuat PDF: {str(pdf_error)}",
+                    "filled_html": filled_html[:1000]  # First 1000 chars for debugging
+                }
+            )
 
     except Exception as e:
+        print(f"[ERROR] General error: {e}")
         print(traceback.format_exc())
+        return JSONResponse(
+            status_code=500,
+            content={"error": str(e)}
+        )
+
+@app.get("/debug/template/{template_name}")
+async def debug_template(template_name: str):
+    """
+    Endpoint untuk debugging template
+    """
+    try:
+        template_path = f"templates/{template_name}"
+        if not os.path.exists(template_path):
+            return {"error": "Template tidak ditemukan"}
+        
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_content = f.read()
+        
+        # Extract placeholders
+        import re
+        placeholders = re.findall(r'\{\{(\w+)\}\}', template_content)
+        
+        return {
+            "template_path": template_path,
+            "placeholders_found": list(set(placeholders)),
+            "template_preview": template_content[:500]
+        }
+    except Exception as e:
         return {"error": str(e)}
 
+@app.get("/test/entities")
+async def test_entities():
+    """
+    Endpoint untuk testing entities mapping
+    """
+    from src.gemma import extract_mapping_from_entities
+    
+    test_entities = {
+        "ORG": ["universitas kadiri", "jpc universitas kadiri", "job placement center"],
+        "PER": ["Dr. Eko Winarti", "Fajar Setiawan", "Imam Safi'i"],
+        "LOC": ["Jl. Selomangleng No. 1 Kediri", "Gedung H"],
+        "MONEY": ["Rp 3.500.000", "Rp 400.000,00"],
+        "DATE": ["19 November 2019", "20 November 2019"],
+        "TIME": ["2 hari"]
+    }
+    
+    mapping = extract_mapping_from_entities(test_entities)
+    return {
+        "test_entities": test_entities,
+        "extracted_mapping": mapping
+    }
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000)
