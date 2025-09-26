@@ -18,10 +18,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install wkhtmltopdf manual (static build, tidak perlu libjpeg-turbo8)
-RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6-1/wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
-    && tar -xvf wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
+RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.4/wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
+    && tar -xvf wkhtmltox-0.12.4_linux-generic-amd64.tar.xz \
     && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/ \
-    && rm -rf wkhtmltox wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz
+    && rm -rf wkhtmltox wkhtmltox-0.12.4_linux-generic-amd64.tar.xz
 
 # Salin requirements.txt
 COPY requirements.txt .
