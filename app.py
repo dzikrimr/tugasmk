@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File
 import uvicorn
+import traceback
 import os
 from src.ocr import extract_text_from_pdf
 from src.ner import extract_entities
@@ -28,6 +29,7 @@ async def analyze(file: UploadFile = File(...)):
         }
 
     except Exception as e:
+        print(traceback.format_exc())
         return {"error": str(e)}
 
 if __name__ == "__main__":
