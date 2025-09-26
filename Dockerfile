@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     xfonts-75dpi \
     xfonts-base \
     libglib2.0-0 \
-    libssl1.1 \
+    libssl3 \
     ca-certificates \
     wget \
     && rm -rf /var/lib/apt/lists/*
