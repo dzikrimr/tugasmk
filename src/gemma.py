@@ -1,11 +1,19 @@
 import requests
 
-OLLAMA_BASE_URL = "https://ollama.elginbrian.com"  # ganti sesuai base URL
+OLLAMA_BASE_URL = "https://ollama.elginbrian.com"  # base URL API Gemma
 MODEL_NAME = "gemma"
 
 def fill_template_with_gemma(template_path: str, entities: dict) -> str:
     """
     Kirim template HTML + entities ke Gemma, kembalikan HTML yang sudah terisi.
+    Jika gagal, kembalikan template asli.
+
+    Args:
+        template_path (str): path ke file template HTML.
+        entities (dict): hasil ekstraksi entities dari /analyze.
+
+    Returns:
+        str: HTML kontrak yang sudah diisi Gemma.
     """
     with open(template_path, "r", encoding="utf-8") as f:
         html_template = f.read()
@@ -17,12 +25,19 @@ Template:
 Hasilkan HTML penuh yang siap dicetak sebagai PDF.
     """
 
-    response = requests.post(
-        f"{OLLAMA_BASE_URL}/api/models/{MODEL_NAME}/generate",
-        json={"prompt": prompt, "max_tokens": 2000}
-    )
+    try:
+        # Endpoint baru Gemma
+        response = requests.post(
+            f"{OLLAMA_BASE_URL}/api/generate",
+            json={"model": MODEL_NAME, "prompt": prompt, "max_tokens": 2000},
+            timeout=30  # mencegah request menggantung terlalu lama
+        )
+        response.raise_for_status()
+        data = response.json()
+        # Gemma kemungkinan mengembalikan field 'text'
+        return data.get("text", html_template)
 
-    response.raise_for_status()
-    data = response.json()
-    # Asumsi Gemma mengembalikan HTML di field 'text'
-    return data.get("text", html_template)
+    except requests.RequestException as e:
+        print(f"[Gemma API error] {e}")
+        # fallback ke template asli kalau gagal
+        return html_template
