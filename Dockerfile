@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr-ind \
     poppler-utils \
     libglib2.0-0 \
+    xfonts-75dpi \
+    xfonts-base \
+    wkhtmltopdf \
     && rm -rf /var/lib/apt/lists/*
 
 # Salin requirements.txt
