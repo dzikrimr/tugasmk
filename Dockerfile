@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install Tesseract OCR + Poppler + Indo language
+# Install dependencies sistem + Tesseract + Poppler
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-ind \
@@ -12,8 +12,16 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-0 \
     xfonts-75dpi \
     xfonts-base \
-    wkhtmltopdf \
+    wget \
+    gnupg \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Install wkhtmltopdf manual
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.bionic_amd64.deb \
+    && dpkg -i wkhtmltox_0.12.6-1.bionic_amd64.deb \
+    && apt-get install -f -y \
+    && rm wkhtmltox_0.12.6-1.bionic_amd64.deb
 
 # Salin requirements.txt
 COPY requirements.txt .
