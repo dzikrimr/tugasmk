@@ -2,8 +2,6 @@ import pytesseract
 from pdf2image import convert_from_path
 import os
 
-##pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-
 def extract_text_from_pdf(pdf_path, output_dir="data/ocr_output"):
     """
     Convert PDF to images per page, run OCR (Tesseract), 
