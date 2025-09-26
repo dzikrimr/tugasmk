@@ -15,10 +15,10 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Install wkhtmltopdf statically linked
-RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.bionic_amd64.deb \
-    && apt install -y ./wkhtmltox_0.12.6-1.bionic_amd64.deb \
-    && rm -f wkhtmltox_0.12.6-1.bionic_amd64.deb
+RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6/wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
+    && tar -xvf wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
+    && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/ \
+    && rm -rf wkhtmltox wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz
 
 # Salin dan install Python dependencies
 COPY requirements.txt .
