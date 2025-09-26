@@ -1,8 +1,12 @@
+# Gunakan Python resmi
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install sistem dependencies
+# Salin wkhtmltopdf .deb yang sudah diunduh
+COPY wkhtmltox_0.12.6.1-2.jammy_amd64.deb .
+
+# Install dependencies sistem + Tesseract + Poppler + wkhtmltopdf
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-ind \
@@ -13,22 +17,17 @@ RUN apt-get update && apt-get install -y \
     libssl3 \
     ca-certificates \
     wget \
+    && apt install -y ./wkhtmltox_0.12.6.1-2.jammy_amd64.deb \
+    && rm -f wkhtmltox_0.12.6.1-2.jammy_amd64.deb \
     && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6/wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
-    && tar -xvf wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
-    && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/ \
-    && rm -rf wkhtmltox wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz
-
-# Salin dan install Python dependencies
+# Salin requirements.txt & install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Salin semua file project
 COPY . .
 
-# Expose port
 EXPOSE 8000
 
-# Jalankan FastAPI
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
