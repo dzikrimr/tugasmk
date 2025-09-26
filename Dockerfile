@@ -21,9 +21,10 @@ RUN wget http://mirrors.kernel.org/ubuntu/pool/main/libj/libjpeg-turbo/libjpeg-t
     && rm libjpeg-turbo8_2.1.2-0ubuntu1_amd64.deb
 
 # Install wkhtmltopdf (.deb untuk Jammy)
-RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb \
-    && apt install -y ./wkhtmltox_0.12.6.1-2.jammy_amd64.deb \
-    && rm wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2_linux-generic-amd64.tar.xz \
+    && tar -xf wkhtmltox_0.12.6.1-2_linux-generic-amd64.tar.xz \
+    && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/ \
+    && rm -rf wkhtmltox wkhtmltox_0.12.6.1-2_linux-generic-amd64.tar.xz
 
 # Salin requirements.txt dan install dependencies Python
 COPY requirements.txt .
