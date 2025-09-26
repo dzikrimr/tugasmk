@@ -1,10 +1,11 @@
-from fastapi import FastAPI, UploadFile, File, Form, Body
+from fastapi import FastAPI, UploadFile, File, Body
 from fastapi.responses import FileResponse
+from pydantic import BaseModel
+from typing import Dict, Any
 import uvicorn
 import os
 import uuid
 import traceback
-from datetime import datetime
 from collections import defaultdict
 from src.ocr import extract_text_from_pdf
 from src.ner import extract_entities
@@ -14,9 +15,13 @@ from src.pdfgen import html_to_pdf
 
 app = FastAPI()
 
-# Folder untuk sementara
+# Folder sementara
 os.makedirs("temp", exist_ok=True)
 os.makedirs("output", exist_ok=True)
+
+class ContractPayload(BaseModel):
+    entities_json: Dict[str, Any]
+    template_name: str = "contract_template.html"
 
 @app.post("/analyze")
 async def analyze(file: UploadFile = File(...)):
@@ -54,12 +59,30 @@ async def analyze(file: UploadFile = File(...)):
 
 
 @app.post("/generate_contract")
-async def generate_contract(
-    entities_json: dict = Body(...),
-    template_name: str = Form("contract_template.html")
-):
+async def generate_contract(payload: ContractPayload = Body(..., examples={
+    "example": {
+        "summary": "Contoh payload JSON",
+        "value": {
+            "entities_json": {
+                "text_preview": "Isi teks...",
+                "entities": {
+                    "ORG": ["universitas kadiri"],
+                    "PER": ["Dr. Eko Winarti"],
+                    "LOC": ["Jl. Selomangleng No. 1"],
+                    "MONEY": ["Rp 3.500.000"],
+                    "DATE": ["20 November 2019"],
+                    "TIME": ["2 hari"]
+                }
+            },
+            "template_name": "contract_template.html"
+        }
+    }
+})):
     try:
+        entities_json = payload.entities_json
+        template_name = payload.template_name
         template_path = f"templates/{template_name}"
+
         if not os.path.exists(template_path):
             return {"error": "Template HTML tidak ditemukan"}
 
