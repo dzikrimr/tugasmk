@@ -17,10 +17,11 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install wkhtmltopdf manual
-RUN wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-2/wkhtmltox_0.12.6.1-2.jammy_amd64.deb \
-    && apt install -y ./wkhtmltox_0.12.6.1-2.jammy_amd64.deb \
-    && rm wkhtmltox_0.12.6.1-2.jammy_amd64.deb
+# Install wkhtmltopdf manual (static build, tidak perlu libjpeg-turbo8)
+RUN wget https://github.com/wkhtmltopdf/wkhtmltopdf/releases/download/0.12.6-1/wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
+    && tar -xvf wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz \
+    && cp wkhtmltox/bin/wkhtmltopdf /usr/local/bin/ \
+    && rm -rf wkhtmltox wkhtmltox_0.12.6-1_linux-generic-amd64.tar.xz
 
 # Salin requirements.txt
 COPY requirements.txt .
