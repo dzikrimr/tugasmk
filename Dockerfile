@@ -4,7 +4,7 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Install dependencies sistem + Tesseract + Poppler
+# Install dependencies sistem + Tesseract + Poppler + xz-utils
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-ind \
@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     ca-certificates \
+    xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install wkhtmltopdf manual (static build, tidak perlu libjpeg-turbo8)
